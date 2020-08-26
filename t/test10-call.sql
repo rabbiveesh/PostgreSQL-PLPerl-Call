@@ -16,44 +16,53 @@ my @ary;
 
 # ====== single-value single-row function ======
 
-# --- no arguments
-like call('pi()'), qr/^3.14159/;
-# with schema
-like call('pg_catalog.pi()'), qr/^3.14159/;
-# without parens/types
-like call('pi'),              qr/^3.14159/;
-like call('pg_catalog.pi'),   qr/^3.14159/;
+subtest 'no arguments' => sub {
+  like call('pi()'), qr/^3.14159/, 'normal call';
+  # with schema
+  like call('pg_catalog.pi()'), qr/^3.14159/, 'with schema';
+  # without parens/types
+  like call('pi'),              qr/^3.14159/, 'no parens';
+  like call('pg_catalog.pi'),   qr/^3.14159/, 'schema, no parens';
 
-# bad calls
-eval { call('pi()', 42) };
-like $@, qr/there is no parameter \$1/;
+  subtest 'bad calls' => sub {
+    eval { call('pi()', 42) };
+    like $@, qr/there is no parameter \$1/, 'died when no param allowed';
+  };
+};
 
-# --- method call syntax
-like PG->pi, qr/^3.14159/;
-# bad calls
-eval { PG->pi(42) };
-like $@, qr/there is no parameter \$1/;
+subtest 'method call syntax' => sub {
+  like PG->pi, qr/^3.14159/;
+  subtest 'bad calls' => sub {
+  eval { PG->pi(42) };
+  like $@, qr/there is no parameter \$1/;
+  };
+};
 
-# --- one argument, simple types
-is call('abs(int)', -42), 42;
-is call('abs(float)', -42.5), '42.5';
-is call('bit_length(text)', 'jose'), 32;
+subtest 'one argument' => sub {
+  subtest 'simple types' => sub {
+    is call('abs(int)', -42), 42;
+    is call('abs(float)', -42.5), '42.5';
+    is call('bit_length(text)', 'jose'), 32;
+  };
 
-# --- one argument, multi-word types
-is call('abs(double precision)', -42.5), '42.5';
-is call('bit_length(character varying(90))', 'jose'), 32;
+  subtest 'multi-word types' => sub {
+    is call('abs(double precision)', -42.5), '42.5';
+    is call('bit_length(character varying(90))', 'jose'), 32;
+  };
 
-# --- lock calls TODO- are these tests?
-call('pg_try_advisory_lock_shared(bigint)', 1234);
-call('pg_advisory_unlock_all()');
+  # --- lock calls TODO- are these tests?
+  call('pg_try_advisory_lock_shared(bigint)', 1234);
+  call('pg_advisory_unlock_all()');
 
-# bad calls
-eval { call('abs(int)', -42.5) };
-like $@, qr/invalid input syntax for integer/;
-eval { call('abs(text)', -42.5) };
-like $@, qr/function abs\(text\) does not exist/;
-eval { call('abs(nonesuchtype)', -42.5) };
-like $@, qr/type "nonesuchtype" does not exist/;
+  subtest 'bad calls' => sub {
+    eval { call('abs(int)', -42.5) };
+    like $@, qr/invalid input syntax for( type)? integer/;
+    eval { call('abs(text)', -42.5) };
+    like $@, qr/function abs\(text\) does not exist/;
+    eval { call('abs(nonesuchtype)', -42.5) };
+    like $@, qr/type "nonesuchtype" does not exist/;
+  };
+};
 
 # --- multi-argument, simple types
 is call('trunc(numeric,int)', 42.4382, 2), '42.43';
@@ -68,14 +77,14 @@ subtest 'unusual types from strings' => sub {
   is call('nextval(regclass)', 'seqn1'), 42;
   is call('nextval(text)',     'seqn1'), 43;
 
-  is call('string_to_array(text, text)', 'xx~^~yy~^~zz', '~^~'), '{xx,yy,zz}';
+  like call('string_to_array(text, text)', 'xx~^~yy~^~zz', '~^~'), qr/\Q{xx,yy,zz}/;
 
 };
 subtest 'array and array reference handling' => sub {
   is call('array_dims(text[])', '{a,b,c}'), '[1:3]';
   is call('array_dims(text[])', [qw(a b c)]), '[1:3]';
   is call('array_dims(text[])', [[1,2,3], [4,5,6]]), '[1:2][1:3]';
-  is call('array_cat(int[], int[])', [1,2,3], [2,1]), '{1,2,3,2,1}';
+  like my $L = call('array_cat(int[], int[])', [1,2,3], [2,1]), qr/\Q{1,2,3,2,1}/;
 };
 
 
