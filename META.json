@@ -1,7 +1,7 @@
 {
-   "abstract" : "It's new $module",
+   "abstract" : "Simple interface for calling SQL functions from PostgreSQL PL/Perl",
    "author" : [
-      "Veesh Goldman <rabbiveesh@gmail.com>"
+      "-"
    ],
    "dynamic_config" : 0,
    "generated_by" : "Minilla/v3.1.10, CPAN::Meta::Converter version 2.150010",
@@ -47,12 +47,27 @@
       },
       "test" : {
          "requires" : {
-            "Test::More" : "0.98"
+            "Test::More" : "0.98",
+            "Test::PostgreSQL" : "0"
          }
       }
    },
    "release_status" : "unstable",
-   "version" : "0.01",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/rabbiveesh/PostgreSQL-PLPerl-Call/issues"
+      },
+      "homepage" : "https://github.com/rabbiveesh/PostgreSQL-PLPerl-Call",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/rabbiveesh/PostgreSQL-PLPerl-Call.git",
+         "web" : "https://github.com/rabbiveesh/PostgreSQL-PLPerl-Call"
+      }
+   },
+   "version" : "1.007",
+   "x_contributors" : [
+      "Veesh Goldman <rabbiveesh@gmail.com>"
+   ],
    "x_serialization_backend" : "JSON::PP version 4.02",
    "x_static_install" : 1
 }
